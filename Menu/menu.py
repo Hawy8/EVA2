@@ -46,14 +46,14 @@ def menu():
                     ╟─────────────────────────────────────╢
                     ║  6) Ingresar producto               ║
                     ║  7) Listar productos                ║
-                    ║  8) Listar productos por categoría  ║
-                    ║  9) Buscar producto por nombre      ║
-                    ║ 10) Actualizar producto             ║
-                    ║ 11) Eliminar producto               ║
+                    ║  8) Buscar producto por nombre      ║
+                    ║  9) Actualizar producto             ║
+                    ║  10) Eliminar producto              ║
                     ╟─────────────────────────────────────╢
                     ║  0) Salir                           ║
                     ╚═════════════════════════════════════╝
                     """)
+        
         op_str = input("Opción: ").strip()
         if not op_str.isdigit():
             print("Ingrese un número válido (0-11)"); _pausa(); continue
@@ -131,47 +131,37 @@ def menu():
                 _pausa()
 
 
+            
+
             elif op == 8:
-                cat = _elige_categoria()
-                # usa método del DAO si existe; si no, filtra en memoria
-                if hasattr(pdao, "listar_por_categoria"):
-                    res = pdao.listar_por_categoria(cat)
-                else:
-                    res = [pr for pr in pdao.listar() if pr.get('categoria') == cat]
+                nombre = input("Nombre a buscar: ").strip()
+                res = pdao.buscar_por_nombre(nombre)
                 if not res:
-                    print("No hay productos en esa categoría.")
+                    print("No hay coincidencias")
                 else:
-                    print(f"\n== {cat} ==")
+                    print("\nID  NOMBRE                 PRECIO    CREADO_EN           DESCRIPCIÓN")
+                    print("-"*95)
                     for pr in res:
-                        print(f"{pr['id']:>3} {pr['nombre']:<22} {pr.get('marca','-'):<12}  ${pr['precio']:>8.2f}")
+                        # si usas cursor(dictionary=True), pr es dict
+                        desc = (pr['descripcion'] or "")[:30]
+                        print(f"{pr['id']:>3} {pr['nombre']:<22} {pr['precio']:>8.2f}  "
+                            f"{str(pr['creado_en'])[:19]:<19}  {desc}")
                 _pausa()
+
+
 
             elif op == 9:
                 id_ = int(input("ID producto a actualizar: ").strip())
                 nombre = input("Nuevo nombre: ").strip()
                 descripcion = input("Nueva descripción: ").strip()
                 precio = float(input("Nuevo precio: ").strip())
-                filas = pdao.actualizar(id_, nombre, descripcion, precio)
+                stock = input("nueva cantidad de stock").strip()
+                filas = pdao.actualizar(id_, nombre, descripcion, precio, stock)
                 print(f"Filas afectadas: {filas}")
                 _pausa()
-
-
+                
 
             elif op == 10:
-                id_ = int(input("ID producto a actualizar: ").strip())
-                nombre = input("Nuevo nombre: ").strip()
-                descripcion = input("Nueva descripción: ").strip()
-                categoria = _elige_categoria()
-                marca = input("Nueva marca: ").strip() or "Hacendado"
-                precio = float(input("Nuevo precio: ").strip())
-                stock = int(input("Nuevo stock: ").strip())
-                activo = input("¿Activo? (s/n) [s]: ").strip().lower() != "n"
-                # espera que el DAO soporte estos campos:
-                filas = pdao.actualizar(id_, nombre, descripcion, categoria, marca, precio, stock, activo)
-                print(f"Filas afectadas: {filas}")
-                _pausa()
-
-            elif op == 11:
                 id_ = int(input("ID producto a eliminar: ").strip())
                 filas = pdao.eliminar(id_)
                 print(f"Filas afectadas: {filas}")
